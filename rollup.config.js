@@ -1,17 +1,22 @@
 import commonjs from "@rollup/plugin-commonjs"
 import resolve from "@rollup/plugin-node-resolve"
 import svelte from "rollup-plugin-svelte"
-import { terser } from "rollup-plugin-terser"
+import terser from "@rollup/plugin-terser"
 import postcss from "rollup-plugin-postcss"
 import svg from "rollup-plugin-svg"
 import json from "rollup-plugin-json"
 import nodePolyfills from "rollup-plugin-polyfill-node"
-import copy from "rollup-plugin-copy2"
+import _copy from "rollup-plugin-copy2"
+const copy = _copy.default || _copy
 import tar from "tar"
 import fs from "fs"
-import pkg from "./package.json"
+import { createRequire } from "module"
 import crypto from "crypto"
-import { validate } from "@budibase/backend-core/plugins"
+import bbBackendCore from "@budibase/backend-core/plugins"
+const { validate } = bbBackendCore
+
+const require = createRequire(import.meta.url)
+const pkg = require("./package.json")
 
 const ignoredWarnings = [
   "unused-export-let",
@@ -37,16 +42,12 @@ const clean = () => ({
 // Custom plugin to hash the JS bundle and write it in the schema
 const hash = () => ({
   writeBundle() {
-    // Generate JS hash
     const fileBuffer = fs.readFileSync("dist/plugin.min.js")
     const hashSum = crypto.createHash("sha1")
     hashSum.update(fileBuffer)
     const hex = hashSum.digest("hex")
 
-    // Read and parse existing schema from dist folder
     const schema = JSON.parse(fs.readFileSync("./dist/schema.json", "utf8"))
-
-    // Write updated schema to dist folder, pretty printed as JSON again
     const newSchema = {
       ...schema,
       hash: hex,
@@ -61,12 +62,12 @@ const bundle = () => ({
   async writeBundle() {
     const bundleName = `${pkg.name}-${pkg.version}.tar.gz`
     return tar
-        .c({ gzip: true, cwd: "dist" }, [
-          "plugin.min.js",
-          "schema.json",
-          "package.json",
-        ])
-        .pipe(fs.createWriteStream(`dist/${bundleName}`))
+      .c({ gzip: true, cwd: "dist" }, [
+        "plugin.min.js",
+        "schema.json",
+        "package.json",
+      ])
+      .pipe(fs.createWriteStream(`dist/${bundleName}`))
   },
 })
 
@@ -74,7 +75,7 @@ const validateSchema = () => ({
   buildStart() {
     const schema = fs.readFileSync("schema.json", "utf8")
     validate(JSON.parse(schema))
-  }
+  },
 })
 
 export default {
@@ -87,16 +88,16 @@ export default {
     globals: {
       svelte: "svelte",
       "svelte/internal": "svelte_internal",
+      "svelte/internal/client": "svelte_internal_client",
     },
   },
-  external: ["svelte", "svelte/internal"],
+  external: ["svelte", "svelte/internal", "svelte/internal/client"],
   plugins: [
     validateSchema(),
     clean(),
     svelte({
       emitCss: true,
       onwarn: (warning, handler) => {
-        // Ignore some warnings
         if (!ignoredWarnings.includes(warning.code)) {
           handler(warning)
         }
@@ -108,7 +109,7 @@ export default {
     resolve({
       preferBuiltins: true,
       browser: true,
-      skip: ["svelte", "svelte/internal"],
+      skip: ["svelte", "svelte/internal", "svelte/internal/client"],
     }),
     svg(),
     json(),

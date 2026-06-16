@@ -1,10 +1,14 @@
 <script>
-    import Component from "../src/Component.svelte"
-    import Boundary from "./Boundary.js"
+  import Component from "../src/Component.svelte"
+  import Boundary from "./Boundary.js"
+
+  let { children, ...restProps } = $props()
 </script>
 
 <Boundary>
-  <Component {...$$props}>
-    <slot/>
+  <Component {...restProps}>
+    {#snippet children()}
+      {@render children?.()}
+    {/snippet}
   </Component>
 </Boundary>

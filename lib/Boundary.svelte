@@ -1,29 +1,28 @@
-
 <script>
-    import pkg from "../package.json"
-    import { getContext } from "svelte"
+  import pkg from "../package.json"
+  import { getContext } from "svelte"
 
-    export let error = null
+  let { error = null, children } = $props()
 
-    const { styleable } = getContext("sdk")
-    const component = getContext("component")
+  const { styleable } = getContext("sdk")
+  const component = getContext("component")
 
-    $: styles = {
-      normal: {},
-      id: $component.id,
-      interactive: true
-    }
+  let styles = $derived({
+    normal: {},
+    id: $component.id,
+    interactive: true,
+  })
 </script>
 
-{#if $error}
+{#if error}
   <div class="error" use:styleable={styles}>
     <b>There was an error running the "{pkg.name}" plugin:</b>
     <div class="detail">
-      {$error}
+      {error}
     </div>
   </div>
 {:else}
-  <slot />
+  {@render children?.()}
 {/if}
 
 <style>
