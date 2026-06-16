@@ -1,13 +1,20 @@
 {
   "type": "component",
-  "metadata": {},
+  "metadata": {
+    "svelteMajor": 5
+  },
   "schema": {
     "name": "bb-plugin-Tabs",
     "friendlyName": "Tabs",
     "description": "A Tabs Compoenent for Budibase",
     "icon": "Folder",
     "hasChildren": true,
-    "styles": [ "padding", "background", "size", "border" ],
+    "styles": [
+      "padding",
+      "background",
+      "size",
+      "border"
+    ],
     "settings": [
       {
         "type": "select",
@@ -101,5 +108,7 @@
         "defaultValue": false
       }
     ]
-  }
+  },
+  "hash": "39d99cfc8fdf074197444ed663036060953ea034",
+  "version": "4.0.0"
 }
